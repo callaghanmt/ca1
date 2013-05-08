@@ -1,0 +1,204 @@
+Libraries used:
+===============
+1. S3.php: 
+http://undesigned.org.za/2007/10/22/amazon-s3-php-class
+Amazon S3 storage access class
+
+2. Parsley.js
+Javascript validation class
+http://parsley.js
+
+3. AJAXCrud
+AJAX helper class for PHP/ MySQL CRUD operations
+http://ajaxcrud.com/
+
+4. JPGraph
+PHP image/ charting helper classes
+http://jpgraph.net/
+
+Miscellaneous operations
+========================
+1. s3_config.php
+---------------
+Connection details and keys for both AWS S3 and RDS storage
+
+2. s3_filecheck.php
+-------------------
+FUNCTION
+Check file extension of currently uploaded file
+Returns filetype as string
+
+3. s3_upload.php
+----------------
+Connect to S3 storage
+Start stream upload
+Check file extension
+Check filesize
+If fileextension IN permittedlist AND filesize  less than 100MB THEN confirm upload
+    replace filename with one made up from timestamp
+    stream to S3 storage
+    connect to MySQL db
+    INSERT new file details to files table
+ELSE report error and abort upload
+
+4. alct_files.php
+-----------------
+Populate combo boxes with SELECT queries from client and files tables
+ON SELECT:
+    Query client-files table to see if that file has already been allocated to the client
+        IF TRUE: Report error
+        IF FALSE: INSERT into client-files a new record (client_id & file_id) linking a new file to the client
+
+5. draw_graph.php
+-----------------
+GET client_id from calling form
+Include jpgraph helper libraries
+Set size of graph image (700x 350px)
+Connect to DB
+Query client-readings for currrent client, iterate through results set and allocate to series of arrays for each reading set
+Calculate means and convert to integers as appropriate
+Create blank plot
+Add readings
+Add legends and labels
+Render graph to image
+
+Views> ADMIN
+============
+adminView.php
+-------------
+Call Ajax CRUD to produce a new instance of Client and Readings table
+Link to necessary CSS and JS files
+Navigation to Home page
+Display tables with the appropriate column titles in a specific ordering
+Limit the number of rows for each table on view
+Call Ajax CRUD to generate a filter for the user to search the Client table by last name
+Ajax CRUD produces “Add Client” and “Add Readings” to insert new clients and readings for a specific client
+Specify validation for email for Client insert field on “Add Client”
+Order by last name for Client table
+Show tables
+
+index.php
+---------
+Link to necessary CSS and JS files
+Navigation links for Admin web pages i.e. upload and admin view
+
+trainerAll.php
+--------------
+Call Ajax CRUD to produce a new instance of Trainer table
+Link to necessary CSS and JS files
+Navigation to Home page
+Get values dumvalue and cid i.e. client id from URL
+If statements to flag status report or error messages for redirect from the insertAdmin.php and updateTrainer.php
+Display table with the appropriate column titles in a specific ordering
+Limit the number of rows for  Trainer table on view
+Call Ajax CRUD to generate a filter for the user to search the Trainer table by last name
+Ajax CRUD produces “Add Trainer” to insert new Trainer
+Show Trainer table
+Allocate Trainer to Client section -> Form created to post to insertAdmin.php to insert values in table called trainer_client. Dropdown box created with a list of client names that have not been allocated a trainer. Connect to database and execute query to find all clients that have not been allocated a trainer using a while statement, then end database connection
+Repeats step 11 by creating dropdown list and running a query to produce a list of trainers to select, then add a submit button and end the form.
+Update trainer allocation to client section – Client dropdown box created that passes client id field from form data via POSTBACK. Form created to post values to updateTrainer.php that updates the trainer_client table of the trainer switch. Trainer dropdown box running a query to the database listing only the trainers that are not already allocated to the client. End database connection. Submit the form passing values trainer id and client id. 
+
+insertAdmin.php and updateTrainer.php
+-------------------------------------
+Receives values posted from trainerAll.php
+If statement to check values been posted else if no values posted then redirect with a value for error message to show
+Open database connection.  Validation to check if database fails then redirect with a value to show error message
+Run query to insert or update the values in the database
+Close the database connection then redirect to trainerAll.php with a value that allows for a message to show the DB has been updated.
+
+
+VIEWS>CLIENT
+============
+addReadings.php
+---------------
+Link to necessary CSS and JS files
+Navigation to Home page
+Get value dumvalue from URL, which is stored in a variable called $errorMessage.
+Client dropdown box created that passes client id field from form data via POSTBACK. 
+Get value client id from URL, which is stored in a variable called $tag.
+Form created to post the client’s Readings values to insertReadings.php that inserts the new values. Using Parsley form validation to validate the values inputted into the fields dynamically before the form data can be submitted to insertReadings.php. Submit and end form.
+If statement checking if there is an value 2 stored in $errorMessage to flag an error message to contact administrator if the values entered are not inserted to the database via redirect from insertReadings.php
+
+clientView.php
+--------------
+Call Ajax CRUD to produce a new instance of Client and Readings table
+Link to necessary CSS and JS files. JavaScript function for popUp window by URL.
+Get value dumvalue from URL, which is stored in a variable.
+Navigation to Home page
+Client dropdown box created that passes client id field from form data via POSTBACK. 
+Get value myfield i.e. client id from URL
+If statement to flag status report  showing client details successfully modified, which is only displayed after the redirect value is passed from the updateClient.php
+Display tables with the appropriate column titles in a specific ordering
+Ajax CRUD call Limit the number of rows for each table on view
+Ajax CRUD call to include a where clause for both Client and Readings to be restricted by retrieving the client id (i.e. hint step 6) only viewing the client selected from the Client dropdown list.
+Ajax CRUD “Delete” column disallowed from showing in the Client and Readings table
+Option for exporting Readings information via CSV button
+Disallowing Ajax CRUD from showing “Add Readings” and “Add Client”
+Call to Ajax CRUD to order by last name for Client table
+Order by last name for Client table
+Open database connection and run a select query to retrieve client details to be displayed on the page with a link to the client image
+Show reading and client table
+Running another select query to retrieve client files i.e. pdf or videos that has been allocated to a that one specific client
+Display result of files links retrieved from the database in a table
+End database connection
+PopUp window to display the Readings in Graphical visual image to show your personal progress
+
+editClient.php
+--------------
+Link to necessary CSS and JS files
+Navigation to Home page
+Get dumvalue and and myfield i.e. client id from the URL
+Client dropdown box created to list all the clients from the database. Once a client has been selected from the list it instantly passes client id field from form data via POSTBACK. 
+Run select query retrieve all client data restricted by a single client id stored in a variable
+Store client data into variables
+Form created to post all the values in the form to updateClient.php that updates the client table.
+Form is being validated by the use of Parsley for all fields except photo
+End of form and submit button shown
+End database connection
+If statement to flag error message to be displayed after the redirect value is passed back from the updateClient.php URL.
+
+index.php (portal to view other client web pages)
+-------------------------------------------------
+Link to necessary CSS and JS files
+Navigation links for Client web pages i.e. Client View and Add Readings
+
+insertReadings.php and updateClient.php
+---------------------------------------
+Receives values posted from either addReadings.php or editClient.php
+If statement to check values been posted else if no values posted then redirect with a value for error message to show
+Open database connection.  Validation to check if database fails then redirect with a value to show error message
+Run query to insert or update the values in the database
+Close the database connection then redirect to clientView.php with a value that allows for a message to show the DB has been updated.
+
+VIEWS>TRAINER
+=============  
+
+index.php (i.e. Trainer View)
+-----------------------------
+Link to necessary CSS and JS files. JavaScript functionality for JQuery table.
+Navigation link to homepage
+Get value dumvalue from URL, which is stored in a variable called $errorMessage. It retrieves a value from a redirect URL.
+Trainer dropdown box created to list all the trainers. Once a trainer has been selected from the list it instantly passes trainer id field from form data via POSTBACK. 
+Get trainer id from URL then store it in a COOKIE with an appropriate usage time before the COOKIE is destroyed
+Dropdown box created with a list of client names that have been allocated to a specific trainer. Connect to database and execute query to find all clients that have been allocated a trainer using a while statement, then end database connection. Once a client has been selected from the list it instantly passes client id field from form data via POSTBACK.
+Get myfield i.e. client id from the URL
+If statement to check if $tag i.e. client id from the GET method is not null. If null then display no readings.
+If not null then open database connection and run a select query to retrieve all details of client and their trainer information from their tables.
+Show client image. While loop to display all the appropriate client details. 
+Table create, adding two heading title names client comments and trainer comments.
+Run a select query to retrieve trainer and client comments restricted to only one specific client by using $tag (i.e. that contains client id) variable.
+Form created to post trainer comments, trainer id and client id to insertComments.php that updates the trainer’s comments in the trainer_client table. Display client and trainer comments in the table. Hidden input type values client and trainer id with be included in the form submission.
+End table and submit button
+If statement to check if client id is null within $tag variable else show error messages and close database connection. Run select query to retrieve all client name and reading data from the relevant database tables restricted by client id.
+Table create with classes referring to JQuery tablesorter. Columns created. Display client and readings data within the table.
+End table and show pager.
+If statement checking if there is an value 2 stored in $errorMessage to flag an error message to contact administrator if the values entered are not inserted to the database via redirect from updateClient.php
+
+insertComments.php
+------------------
+Receives values posted from index.php (i.e. Trainer view)
+If statement to check values been posted else if no values posted then redirect with a value for error message to show
+Open database connection.  Validation to check if database fails then redirect with a value to show error message
+Run query to update the trainer’s comments in the database
+Close the database connection then redirect to index.php (i.e. Trainer view) with a value that allows for a message to show the DB has been updated.
+
